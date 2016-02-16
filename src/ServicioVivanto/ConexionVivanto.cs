@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using RestServiceAutentica;
 using DataAccessRest.Entities;
 using System.Net.Http;
+using System.IO;
 
 namespace ServicioVivanto
 {
@@ -19,12 +20,14 @@ namespace ServicioVivanto
         Autorizado autorizado=null;
         
         public string HoraProceso { get; private set; }
+        public DirectoryInfo DirInfoLog { get; private set; }
 
         public ConexionVivanto(ParametrosServicio parametros, LoginVivanto login)
         {
             this.parametros = parametros;
             this.login = login;
             HoraProceso = DateTime.Now.ToString("yyyyMMddHHmmss");
+            DirInfoLog =Directory.CreateDirectory(HoraProceso);
         }
 
         public void IniciarSesion()
@@ -50,14 +53,14 @@ namespace ServicioVivanto
                     {
                         var msg = autorizado.IdUsuario;
                         autorizado = null;
-                        throw new ExcepcionServicioVivanto(msg);
+                        throw new ExcepcionServicioVivanto(DirInfoLog, msg);
                     }
 
-                    Log.Autorizado("{0} {1}".Fmt(autorizado.IdUsuario, autorizado.Token));
+                    Log.Autorizado(DirInfoLog, "{0} {1}".Fmt(autorizado.IdUsuario, autorizado.Token));
                     return;
                 }
             }
-            throw new ExcepcionServicioVivanto("Metodo de autenticación no retornó Autorizados");
+            throw new ExcepcionServicioVivanto(DirInfoLog, "Metodo de autenticación no retornó Autorizados");
         }
 
 
@@ -84,25 +87,25 @@ namespace ServicioVivanto
             }
             catch(WebServiceException wex)
             {
-                throw new ExcepcionServicioVivanto("{0}{1}StatusCode:{2} ErrorCode:{3} ErrorMessage: {4}{5}{6}/{7}{8}{9}{10}"
+                throw new ExcepcionServicioVivanto(DirInfoLog,"{0}{1}StatusCode:{2} ErrorCode:{3} ErrorMessage: {4}{5}{6}/{7}{8}{9}{10}"
                     .Fmt(wex.Message, Environment.NewLine,
                     wex.StatusCode, wex.ErrorCode, wex.ErrorMessage, Environment.NewLine,
                     cliente.BaseUri, urlPeticion, Environment.NewLine,
                     wex.ResponseBody, Environment.NewLine
-                    ), autorizado.Token);
+                    ));
             }
             catch (WebException wex)
             {
-                throw new ExcepcionServicioVivanto("{0}{1}Status:{2}{3}{4}/{5}{6}{7}{8}"
+                throw new ExcepcionServicioVivanto(DirInfoLog,"{0}{1}Status:{2}{3}{4}/{5}{6}{7}{8}"
                     .Fmt(wex.Message, Environment.NewLine,
                     wex.Status,  Environment.NewLine,
                     cliente.BaseUri, urlPeticion, Environment.NewLine,
                     wex.GetResponseBody(), Environment.NewLine
-                    ), autorizado.Token);
+                    ));
             }
             catch (Exception ex)
             {
-                throw new ExcepcionServicioVivanto("{0}{1}".Fmt(ex.Message, Environment.NewLine) , autorizado.Token);
+                throw new ExcepcionServicioVivanto(DirInfoLog, "{0}{1}".Fmt(ex.Message, Environment.NewLine));
             }
         }
 
@@ -177,12 +180,12 @@ namespace ServicioVivanto
                             {
                                 var responseStream = httpResponse.GetResponseStream();
                                 var r2 = responseStream.ToUtf8String();
-                                Log.Sesion(autorizado.Token, r2);
+                                Log.Sesion(DirInfoLog, r2);
                             }
                         }
                         catch(Exception ex)
                         {
-                            Log.Sesion(autorizado.Token, ex.Message);
+                            Log.Sesion(DirInfoLog, ex.Message);
                         }
                         autorizado = null;
                     }
@@ -222,7 +225,7 @@ namespace ServicioVivanto
 
         private static string GetHttpResponse(string uri)
         {
-            System.Threading.Thread.Sleep(1*1000);
+            System.Threading.Thread.Sleep(500);
             using (HttpClient client = new HttpClient())
             {
                 

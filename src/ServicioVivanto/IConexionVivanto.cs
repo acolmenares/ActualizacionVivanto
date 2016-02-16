@@ -1,6 +1,7 @@
 ﻿using DataAccessRest.Entities;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ namespace ServicioVivanto
         List<DatosDetallados> ConsultarHechos(string IdPersona, string fuente);
         string Token { get; }
         string HoraProceso { get; }
+        DirectoryInfo DirInfoLog { get; }
 
     }
 }

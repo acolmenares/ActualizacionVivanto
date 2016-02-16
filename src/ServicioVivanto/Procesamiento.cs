@@ -32,7 +32,7 @@ namespace ServicioVivanto
 
             using (vivanto)
             {
-                vivanto.IniciarSesion();
+                //vivanto.IniciarSesion();
                 ProcesarRegistros();   
             }
 
@@ -49,19 +49,19 @@ namespace ServicioVivanto
                 //if (nv.Identificacion != "1059908291") continue; solo una prueba puntual
 
                 items++;
-                //vivanto.IniciarSesion();
+                vivanto.IniciarSesion();
                 Console.WriteLine("{0} {1} {2}", nv.Identificacion, nv.Numero_Declaracion, nv.Fecha_Declaracion);
                 List<DatosBasicos> datosbasicos = ConsultarEnVivanto(nv);
                 ProcesarDatosBasicos(nv, datosbasicos);
-                //vivanto.CerrarSession();
-                if (items == 9)
+                vivanto.CerrarSession();
+                if (items == 4)
                 {
-                    Console.WriteLine("esperando 10 segundos para el siguiente lote");
-                    System.Threading.Thread.Sleep(10 * 1000);
+                    Console.WriteLine("esperando 5 segundos para el siguiente lote");
+                    System.Threading.Thread.Sleep(5 * 1000);
                     Console.WriteLine("***************************  continuamos ************************");
                     items = 0;
                 }
-                System.Threading.Thread.Sleep(1 * 1000);
+                System.Threading.Thread.Sleep(500);
             }
         }
 
@@ -168,7 +168,7 @@ namespace ServicioVivanto
                 {
                     Declaracion_UnidadesInsertar registro = new Declaracion_UnidadesInsertar()
                     {
-                        Fuente = "WS {0}".Fmt(hecho.FUENTE),
+                        Fuente = "WS Vivanto {0}".Fmt(hecho.FUENTE),
                         Id_EstadoUnidad = parProcesamiento.Obtener_Id_EstadoUnidad(hecho.ESTADO),
                         Id_Unidad = parProcesamiento.Id_Unidad,
                         Fecha_Inclusion = hecho.F_VALORACION,
@@ -184,7 +184,7 @@ namespace ServicioVivanto
             }
             finally
             {
-                Log.RegistrarProcesado(vivanto.Token, nv, hecho, insertado, parProcesamiento);
+                Log.RegistrarProcesado(vivanto.DirInfoLog, nv, hecho, insertado, parProcesamiento);
             }
         }
                         
@@ -223,9 +223,9 @@ namespace ServicioVivanto
         private void IgnorarOLanzarExcepcion(Exception ex)
         {
             if (IgnorarExcepciones)
-                Log.Sesion(vivanto.Token, ex.Message);
+                Log.Sesion(vivanto.DirInfoLog, ex.Message);
             else
-                throw new ExcepcionProcesamiento(ex.Message, vivanto.Token);
+                throw new ExcepcionProcesamiento(vivanto.DirInfoLog, ex.Message);
         }
 
     }

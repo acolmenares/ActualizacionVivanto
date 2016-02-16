@@ -14,33 +14,24 @@ namespace ServicioVivanto
         static readonly string NO_VALORADOS_ENCABEZADO = "Id_Declaracion;Regional;TI;Documento;Declaracion;Fecha_Declaracion;Fecha_Radicacion;Fecha_Desplazamiento;Fecha_atencion";
         static readonly string VALORADOS_ENCABEZADO = "Actualizado;Id_Declaracion;Regional;TI;Documento;Declaracion;Fecha_Declaracion;Fecha_Radicacion;Fecha_Desplazamiento;Fecha_atencion;RUV_ESTADO;RUV_FECHA_VALORACION;RUV_FECHA_DECLARACION;RUV_FECHA_SINIESTRO;RUV_NUM_FUD_NUM_CASO;OK_F_DECLARACION;OK_NUMERO_DECLARACION";
 
-        public static void Autorizado(string msg)
+        public static void Autorizado(DirectoryInfo dir, string msg)
         {
-            LogAutroizadoImpl("ConexionVivanto_Autorizado.log", msg);
+            LogConexionVivantoImpl(dir,"ConexionVivanto.log", msg);
         }
 
-        public static void AutorizadoExcepcion(string msg)
+        public static void AutorizadoExcepcion(DirectoryInfo dir, string msg)
         {
-            LogAutroizadoImpl("ConexionVivanto_AutorizadoExcepcion.log", msg);
+            LogConexionVivantoImpl(dir,"ConexionVivanto.log", msg);
         }
 
       
-        public static void Sesion(string sesion, string msg)
+        public static void Sesion(DirectoryInfo dir, string msg)
         {
-            Console.WriteLine(msg);
-            try
-            {
-                var fn = sesion + ".log";
-                File.AppendAllText(fn, msg+Environment.NewLine);
-            }
-            catch (Exception)
-            {
-
-            }
+            LogConexionVivantoImpl(dir, "ConexionVivanto.log", msg);
         }
 
 
-        public static void RegistrarProcesado(string sesion, RuvConsultaNoValorados nv, DatosDetallados hecho, bool insertado, ParametrosProcesamiento parProcesamiento)
+        public static void RegistrarProcesado(DirectoryInfo dir, RuvConsultaNoValorados nv, DatosDetallados hecho, bool insertado, ParametrosProcesamiento parProcesamiento)
         {
             // valorados
             // actualizado, id_declaracion, regional, TI, documento, declaracion, fecha_declaracion,  fecha_radicacion, fecha_desplazamiento, fecha_atencion, 
@@ -62,12 +53,12 @@ namespace ServicioVivanto
 
             if (hecho == null)
             {
-                fn = "{0}_{1}".Fmt(sesion, "No_Valorados.txt");
+                fn = "No_Valorados.txt";
                 encabezado = NO_VALORADOS_ENCABEZADO;               
             }
             else
             {
-                fn = "{0}_{1}".Fmt(sesion, "Valorados.txt");
+                fn = "Valorados.txt";
                 encabezado = VALORADOS_ENCABEZADO;
                 linea = "{0};{1};{2};{3};{4};{5};{6};{7};{8}".Fmt(insertado ? "SI" : "NO",
                     linea,
@@ -81,8 +72,8 @@ namespace ServicioVivanto
                     );
             }
             try {
-                AsegurarQueExisteEncabezado(fn, encabezado);
-                File.AppendAllText(fn, linea + Environment.NewLine);
+                AsegurarQueExisteEncabezado(dir, fn, encabezado);
+                File.AppendAllText(NombreArhivo(dir, fn), linea + Environment.NewLine);
             }
             catch(Exception)
             {
@@ -92,28 +83,32 @@ namespace ServicioVivanto
         }
 
 
-        private static void AsegurarQueExisteEncabezado(string nombreArchivo, string encabezado)
+        private static void AsegurarQueExisteEncabezado(DirectoryInfo dir, string nombreArchivo, string encabezado)
         {
-
-            if (!File.Exists(nombreArchivo))
+            var fn = NombreArhivo(dir, nombreArchivo);
+            if (!File.Exists(fn))
             {
-                File.AppendAllText(nombreArchivo, encabezado+Environment.NewLine);
+                File.AppendAllText(fn, encabezado+Environment.NewLine);
             }
             
         }
 
-        private static void LogAutroizadoImpl(string archivo, string msg)
+        private static void LogConexionVivantoImpl(DirectoryInfo dir, string fn, string msg)
         {
             Console.WriteLine(msg);
             try
             {
-                var fn = DateTime.Now.ToString("yyyyMMddHHmmss") + "_" + archivo;
-                System.IO.File.WriteAllText(fn, msg);
+                System.IO.File.WriteAllText(NombreArhivo(dir, fn), msg);
             }
             catch (Exception)
             {
 
             }
+        }
+
+        private static string NombreArhivo(DirectoryInfo dir, string fn)
+        {
+            return Path.Combine(dir.FullName, fn);
         }
 
         static string CsvFecha( this DateTime fecha)
