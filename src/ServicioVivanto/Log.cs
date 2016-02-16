@@ -98,7 +98,7 @@ namespace ServicioVivanto
             Console.WriteLine(msg);
             try
             {
-                System.IO.File.WriteAllText(NombreArhivo(dir, fn), msg);
+                System.IO.File.AppendAllText(NombreArhivo(dir, fn), msg+Environment.NewLine);
             }
             catch (Exception)
             {
