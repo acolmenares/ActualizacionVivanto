@@ -31,7 +31,7 @@ namespace ServicioVivanto
             try
             {
                 var fn = sesion + ".log";
-                System.IO.File.AppendAllText(fn, msg);
+                File.AppendAllText(fn, msg+Environment.NewLine);
             }
             catch (Exception)
             {

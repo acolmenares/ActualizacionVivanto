@@ -14,6 +14,7 @@ namespace ServicioVivanto
         IConexionVivanto vivanto;
         IConexionIRDCOL ird;
         ParametrosProcesamiento parProcesamiento;
+        private string horasesion;
 
         public bool IgnorarExcepciones { get; set; }
 
@@ -23,6 +24,8 @@ namespace ServicioVivanto
             this.ird = ird;
             this.parProcesamiento = parProcesamiento;
             IgnorarExcepciones = true;
+            
+
         }
 
         public void Iniciar() {
@@ -30,7 +33,7 @@ namespace ServicioVivanto
             using (vivanto)
             {
                 vivanto.IniciarSesion();
-                ProcesarRegistros();
+                ProcesarRegistros();   
             }
 
         }
@@ -40,11 +43,25 @@ namespace ServicioVivanto
         {
             var lnv = ConsultarNoValoradosRuv();
 
+            var items = 0;
             foreach (var nv in lnv)
             {
+                //if (nv.Identificacion != "1059908291") continue; solo una prueba puntual
+
+                items++;
+                //vivanto.IniciarSesion();
                 Console.WriteLine("{0} {1} {2}", nv.Identificacion, nv.Numero_Declaracion, nv.Fecha_Declaracion);
                 List<DatosBasicos> datosbasicos = ConsultarEnVivanto(nv);
                 ProcesarDatosBasicos(nv, datosbasicos);
+                //vivanto.CerrarSession();
+                if (items == 9)
+                {
+                    Console.WriteLine("esperando 10 segundos para el siguiente lote");
+                    System.Threading.Thread.Sleep(10 * 1000);
+                    Console.WriteLine("***************************  continuamos ************************");
+                    items = 0;
+                }
+                System.Threading.Thread.Sleep(1 * 1000);
             }
         }
 
@@ -125,12 +142,12 @@ namespace ServicioVivanto
 
         private bool ValidarHechoCompleto(RuvConsultaNoValorados nv, DatosDetallados hecho)
         {
-                        
+            // se deben cumplir los dos            
             if (!ValidarHechoDesplazamentForzado(hecho) || !ValidarEstadoIncluido(hecho)) return false;
 
             if (hecho.FUENTE == "RUV")
             {
-                if (!ValidarHechoPorNumeroDeclaracion(hecho, nv) || !ValidarHechoPorFechaValoracion(hecho, nv)) return false;
+                if (!ValidarHechoPorNumeroDeclaracion(hecho, nv) && !ValidarHechoPorFechaValoracion(hecho, nv)) return false;
             }
             else if (hecho.FUENTE == "SIPOD")
             {

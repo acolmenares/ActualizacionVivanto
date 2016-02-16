@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using RestServiceAutentica;
 using DataAccessRest.Entities;
+using System.Net.Http;
 
 namespace ServicioVivanto
 {
@@ -16,11 +17,14 @@ namespace ServicioVivanto
         LoginVivanto login;
         XmlServiceClient cliente=null;
         Autorizado autorizado=null;
+        
+        public string HoraProceso { get; private set; }
 
         public ConexionVivanto(ParametrosServicio parametros, LoginVivanto login)
         {
             this.parametros = parametros;
             this.login = login;
+            HoraProceso = DateTime.Now.ToString("yyyyMMddHHmmss");
         }
 
         public void IniciarSesion()
@@ -66,18 +70,39 @@ namespace ServicioVivanto
         {
             try
             {
-
-                using (var httpResponse = cliente.Get<HttpWebResponse>(urlPeticion))
+                /*using (var httpResponse = cliente.Get<HttpWebResponse>(urlPeticion))
                 {
                     var responseStream = httpResponse.GetResponseStream();
                     var r2 = responseStream.ToUtf8String();
                     return  ServiceStack.Text.XmlSerializer.DeserializeFromString<T>(r2);
                 }
+                */
 
+                var r2 = GetHttpResponse(parametros.UrlBase + "/" + urlPeticion);
+                return ServiceStack.Text.XmlSerializer.DeserializeFromString<T>(r2);
+
+            }
+            catch(WebServiceException wex)
+            {
+                throw new ExcepcionServicioVivanto("{0}{1}StatusCode:{2} ErrorCode:{3} ErrorMessage: {4}{5}{6}/{7}{8}{9}{10}"
+                    .Fmt(wex.Message, Environment.NewLine,
+                    wex.StatusCode, wex.ErrorCode, wex.ErrorMessage, Environment.NewLine,
+                    cliente.BaseUri, urlPeticion, Environment.NewLine,
+                    wex.ResponseBody, Environment.NewLine
+                    ), autorizado.Token);
+            }
+            catch (WebException wex)
+            {
+                throw new ExcepcionServicioVivanto("{0}{1}Status:{2}{3}{4}/{5}{6}{7}{8}"
+                    .Fmt(wex.Message, Environment.NewLine,
+                    wex.Status,  Environment.NewLine,
+                    cliente.BaseUri, urlPeticion, Environment.NewLine,
+                    wex.GetResponseBody(), Environment.NewLine
+                    ), autorizado.Token);
             }
             catch (Exception ex)
             {
-                throw new ExcepcionServicioVivanto(ex.Message, autorizado.Token);
+                throw new ExcepcionServicioVivanto("{0}{1}".Fmt(ex.Message, Environment.NewLine) , autorizado.Token);
             }
         }
 
@@ -88,14 +113,19 @@ namespace ServicioVivanto
 
         public List<DatosBasicos> ConsultarDatosBasicos(string documento)
         {
-            return ObtenerRespuesta<List<DatosBasicos>>("{0}/{1},{2},{3},{4}".Fmt(parametros.UrlConsultarDocumento, parametros.IdAplicacion, autorizado.IdUsuario, autorizado.Token, documento));
+            var r = ObtenerRespuesta<List<DatosBasicos>>("{0}/{1},{2},{3},{4}".Fmt(parametros.UrlConsultarDocumento, parametros.IdAplicacion, autorizado.IdUsuario, autorizado.Token, documento));
+            Console.WriteLine("Datos Basicos obtenidos ");
+            return r;
                     
         }
 
         public List<DatosDetallados> ConsultarHechos(string IdPersona, string fuente)
         {
-            return ObtenerRespuesta<List<DatosDetallados>>("{0}/{1},{2},{3},{4},{5}"
+            var r = ObtenerRespuesta<List<DatosDetallados>>("{0}/{1},{2},{3},{4},{5}"
                 .Fmt(parametros.UrlConsultarHechos, parametros.IdAplicacion, autorizado.IdUsuario, autorizado.Token, IdPersona, fuente));
+
+            Console.WriteLine("hechos obtenidos ");
+            return r;
         }
 
         public List<DatosDetallados> ConsultarHechos(DatosBasicos datoBasico)
@@ -176,7 +206,36 @@ namespace ServicioVivanto
             // GC.SuppressFinalize(this);
         }
 
-       
+
         #endregion
+
+
+        private static string HttpGet(string URI)
+        {
+            System.Net.WebRequest req = System.Net.WebRequest.Create(URI);
+            //req.Proxy = new System.Net.WebProxy(ProxyString, true); //true means no proxy
+            System.Net.WebResponse resp = req.GetResponse();
+            System.IO.StreamReader sr = new System.IO.StreamReader(resp.GetResponseStream());
+            return sr.ReadToEnd().Trim();
+        }
+
+
+        private static string GetHttpResponse(string uri)
+        {
+            System.Threading.Thread.Sleep(1*1000);
+            using (HttpClient client = new HttpClient())
+            {
+                
+                var t = client.GetStringAsync(uri);
+                t.Wait();
+                return t.Result;
+
+            }
+
+                
+        }
+
+
     }
 }
+

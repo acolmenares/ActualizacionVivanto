@@ -16,6 +16,7 @@ namespace ServicioVivanto
         List<DatosDetallados> ConsultarHechos(DatosBasicos datoBasico);
         List<DatosDetallados> ConsultarHechos(string IdPersona, string fuente);
         string Token { get; }
+        string HoraProceso { get; }
 
     }
 }
