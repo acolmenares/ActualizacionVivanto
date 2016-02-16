@@ -14,7 +14,7 @@ namespace ServicioVivanto
         IConexionVivanto vivanto;
         IConexionIRDCOL ird;
         ParametrosProcesamiento parProcesamiento;
-        private string horasesion;
+        //private string horasesion;
 
         public bool IgnorarExcepciones { get; set; }
 
@@ -46,7 +46,7 @@ namespace ServicioVivanto
             var items = 0;
             foreach (var nv in lnv)
             {
-                //if (nv.Identificacion != "1059908291") continue; solo una prueba puntual
+                //if (nv.Identificacion != "27182225") continue; //solo una prueba puntual
 
                 items++;
                 vivanto.IniciarSesion();

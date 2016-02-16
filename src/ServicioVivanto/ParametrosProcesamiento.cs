@@ -43,7 +43,7 @@ namespace ServicioVivanto
 
         public int Obtener_Id_EstadoUnidad( string estado_)
         {
-            var e = estado_.ToUpper();
+            var e = !string.IsNullOrEmpty(estado_)?  estado_.ToUpper():"";
             return e == "INCLUIDO" ? Id_EstadoUnidad_Incluido : e == "NO INCLUIDO" ? Id_EstadoUnidad_NoIncluido : 0;
         }
     }
