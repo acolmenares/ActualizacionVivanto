@@ -85,7 +85,15 @@ namespace ServicioVivanto
                 return ServiceStack.Text.XmlSerializer.DeserializeFromString<T>(r2);
 
             }
-            catch(WebServiceException wex)
+            catch (HttpRequestException wex)
+            {
+                throw new ExcepcionServicioVivanto(DirInfoLog, "{0}{1}{2}/{3}{4}{5}{6}"
+                    .Fmt(wex.Message, Environment.NewLine,
+                    cliente.BaseUri, urlPeticion, Environment.NewLine,
+                    wex.GetResponseBody(), Environment.NewLine
+                    ));
+            }
+            catch (WebServiceException wex)
             {
                 throw new ExcepcionServicioVivanto(DirInfoLog,"{0}{1}StatusCode:{2} ErrorCode:{3} ErrorMessage: {4}{5}{6}/{7}{8}{9}{10}"
                     .Fmt(wex.Message, Environment.NewLine,
