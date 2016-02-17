@@ -16,7 +16,7 @@ namespace DataAccessRest.Entities
         public string FUENTE { get; set; }
         public DateTime F_DECLARACION { get; set; }
         public DateTime F_NACIMIENTO { get; set; }
-        public DateTime F_VALORACION { get; set; }
+        public DateTime? F_VALORACION { get; set; }
         public string GENERO { get; set; }
         public string HECHO { get; set; }
         public string ID_ANEXO { get; set; }

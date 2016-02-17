@@ -26,9 +26,25 @@ namespace ServicioVivanto
                 ird != 0 && vivanto != 0 && ird == vivanto);
 
             return ird != 0 && vivanto != 0 && ird == vivanto;
-
-            //return Regex.Replace(nv.Numero_Declaracion, "[^0-9]", "") == Regex.Replace(hecho.NUM_FUD_NUM_CASO, "[^0-9]", "");
-            
+			                        
         }
+
+		public static bool ValidarHechoDesplazamentForzado(DatosDetallados hecho, ParametrosProcesamiento parProcesamiento)
+		{
+			return (!string.IsNullOrEmpty(hecho.HECHO) && hecho.HECHO.ToUpper() == parProcesamiento.Hecho);
+		}
+
+		public static bool ValidarHechoPorFechaDeclaracion(DatosDetallados hecho, RuvConsultaNoValorados nv)
+		{
+			return nv.Fecha_Declaracion.Date == hecho.F_DECLARACION.Date;
+		}
+
+
+		public static bool ValidarHechoPorFechaValoracion(DatosDetallados hecho, RuvConsultaNoValorados nv)
+		{
+			return (hecho.F_VALORACION.HasValue && nv.Fecha_Valoracion.HasValue)?
+				hecho.F_VALORACION.Value.Date > nv.Fecha_Valoracion.Value.Date: false;
+		}
+
     }
 }

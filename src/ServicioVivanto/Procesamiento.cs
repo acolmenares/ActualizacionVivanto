@@ -46,7 +46,7 @@ namespace ServicioVivanto
             var items = 0;
             foreach (var nv in lnv)
             {
-                //if (nv.Identificacion != "27182225") continue; //solo una prueba puntual
+                //if (nv.Identificacion != "25713773") continue; //solo una prueba puntual
 
                 items++;
                 vivanto.IniciarSesion();
@@ -96,20 +96,22 @@ namespace ServicioVivanto
 
         private void ProcesarDatosBasicos(RuvConsultaNoValorados nv, List<DatosBasicos> datosbasicos)
         {
-            
+			var hl = new List<DatosDetallados> ();
+
             DatosDetallados hecho = null;
             foreach (var dato in datosbasicos)
             {
                 if (!(dato.FUENTE == "RUV" || dato.FUENTE == "SIPOD")) continue;
                 List<DatosDetallados> hechos = ConsultarHechosEnVivanto(dato);
+				hl.AddRange (hechos);
                 if (ProcesarHechos(nv, hechos, out hecho))
-                {
+                {					
                     // uno de los hechos cumple los requisitos 
                     // no es necesario revisar mas los datos basicos de la declaracion
                     break;
                 }
             }
-            GuardarSiSeEncontroHecho(nv, hecho);
+            GuardarSiSeEncontroHecho(nv, datosbasicos, hl, hecho);
         }
 
         private List<DatosDetallados> ConsultarHechosEnVivanto(DatosBasicos dato)
@@ -159,7 +161,9 @@ namespace ServicioVivanto
         }
 
 
-        private void GuardarSiSeEncontroHecho(RuvConsultaNoValorados nv,  DatosDetallados hecho)
+		private void GuardarSiSeEncontroHecho(RuvConsultaNoValorados nv, List<DatosBasicos> basicos,
+			List<DatosDetallados> hechos,
+			DatosDetallados hecho)
         {
             bool insertado = false;
             try
@@ -171,7 +175,7 @@ namespace ServicioVivanto
                         Fuente = "WS Vivanto {0}".Fmt(hecho.FUENTE),
                         Id_EstadoUnidad = parProcesamiento.Obtener_Id_EstadoUnidad(hecho.ESTADO),
                         Id_Unidad = parProcesamiento.Id_Unidad,
-                        Fecha_Inclusion = hecho.F_VALORACION,
+						Fecha_Inclusion = hecho.F_VALORACION.Value,
                         Id_Declaracion = nv.Id_Declaracion,
                     };
                     ird.Declaracion_UnidadesInsertar(registro);
@@ -184,19 +188,19 @@ namespace ServicioVivanto
             }
             finally
             {
-                Log.RegistrarProcesado(vivanto.DirInfoLog, nv, hecho, insertado, parProcesamiento);
+				Log.RegistrarProcesado(vivanto.DirInfoLog, nv, basicos, hechos, hecho, insertado, parProcesamiento);
             }
         }
                         
 
         private bool ValidarHechoPorFechaDeclaracion(DatosDetallados hecho, RuvConsultaNoValorados nv)
         {
-            return nv.Fecha_Declaracion.Date == hecho.F_DECLARACION.Date;
+			return FnVal.ValidarHechoPorFechaDeclaracion (hecho, nv);
         }
 
         private bool ValidarHechoPorFechaValoracion(DatosDetallados hecho, RuvConsultaNoValorados nv)
         {
-            return hecho.F_VALORACION.Date > nv.Fecha_Valoracion.Date;
+			return FnVal.ValidarHechoPorFechaValoracion (hecho, nv);
         }
 
         private bool ValidarHechoPorNumeroDeclaracion(DatosDetallados hecho, RuvConsultaNoValorados nv)
@@ -206,13 +210,7 @@ namespace ServicioVivanto
 
         private bool ValidarHechoDesplazamentForzado(DatosDetallados hecho)
         {
-            try {
-                return hecho.HECHO.ToUpper() == parProcesamiento.Hecho;
-            }
-            catch
-            {
-                return false;
-            }
+			return FnVal.ValidarHechoDesplazamentForzado (hecho, parProcesamiento);
         }
 
         private bool ValidarEstadoIncluido(DatosDetallados hecho)

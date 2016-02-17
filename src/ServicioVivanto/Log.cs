@@ -11,7 +11,7 @@ namespace ServicioVivanto
 {
     public static class Log
     {
-        static readonly string NO_VALORADOS_ENCABEZADO = "Id_Declaracion;Regional;TI;Documento;Declaracion;Fecha_Declaracion;Fecha_Radicacion;Fecha_Desplazamiento;Fecha_atencion";
+		static readonly string NO_VALORADOS_ENCABEZADO = "Id_Declaracion;Regional;TI;Documento;Declaracion;Fecha_Declaracion;Fecha_Radicacion;Fecha_Desplazamiento;Fecha_atencion;En_WS_Vivanto;RUV_ESTADO;RUV_FECHA_VALORACION;RUV_FECHA_DECLARACION;RUV_FECHA_SINIESTRO;RUV_NUM_FUD_NUM_CASO;OK_F_DECLARACION;OK_NUMERO_DECLARACION";
         static readonly string VALORADOS_ENCABEZADO = "Actualizado;Id_Declaracion;Regional;TI;Documento;Declaracion;Fecha_Declaracion;Fecha_Radicacion;Fecha_Desplazamiento;Fecha_atencion;RUV_ESTADO;RUV_FECHA_VALORACION;RUV_FECHA_DECLARACION;RUV_FECHA_SINIESTRO;RUV_NUM_FUD_NUM_CASO;OK_F_DECLARACION;OK_NUMERO_DECLARACION";
 
         public static void Autorizado(DirectoryInfo dir, string msg)
@@ -31,7 +31,9 @@ namespace ServicioVivanto
         }
 
 
-        public static void RegistrarProcesado(DirectoryInfo dir, RuvConsultaNoValorados nv, DatosDetallados hecho, bool insertado, ParametrosProcesamiento parProcesamiento)
+		public static void RegistrarProcesado(DirectoryInfo dir, RuvConsultaNoValorados nv, List<DatosBasicos>basicos,
+			List<DatosDetallados> hechos,
+			DatosDetallados hecho, bool insertado, ParametrosProcesamiento parProcesamiento)
         {
             // valorados
             // actualizado, id_declaracion, regional, TI, documento, declaracion, fecha_declaracion,  fecha_radicacion, fecha_desplazamiento, fecha_atencion, 
@@ -54,7 +56,21 @@ namespace ServicioVivanto
             if (hecho == null)
             {
                 fn = "No_Valorados.txt";
-                encabezado = NO_VALORADOS_ENCABEZADO;               
+                encabezado = NO_VALORADOS_ENCABEZADO;     
+				linea = "{0};{1}".Fmt (linea, (basicos != null && basicos.Count > 0) ? "SI" : "NO");
+				DatosDetallados h;
+				if( BuscarHecho(nv, hechos, parProcesamiento, out h)){
+					linea = "{0};{1};{2};{3};{4};{5};{6};{7}".Fmt(
+						linea,
+						h.ESTADO,
+						h.F_VALORACION.CsvFecha(),
+						h.F_DECLARACION.CsvFecha(),
+						h.FECHA_SINIESTRO.CsvFecha(),
+						h.NUM_FUD_NUM_CASO,
+						h.F_DECLARACION.Date == nv.Fecha_Declaracion.Date ? "SI" : "NO",
+						FnVal.NumeroDeclaracion(nv, h)?"SI" : "NO"
+					);
+				}
             }
             else
             {
@@ -68,7 +84,7 @@ namespace ServicioVivanto
                     hecho.FECHA_SINIESTRO.CsvFecha(),
                     hecho.NUM_FUD_NUM_CASO,
                     hecho.F_DECLARACION.Date == nv.Fecha_Declaracion.Date ? "SI" : "NO",
-                    FnVal.NumeroDeclaracion(nv, hecho)
+					FnVal.NumeroDeclaracion(nv, hecho)?"SI" : "NO"
                     );
             }
             try {
@@ -115,6 +131,32 @@ namespace ServicioVivanto
         {
             return fecha.ToString("dd/MM/yyyy");
         }
+
+		static string CsvFecha( this DateTime? fecha)
+		{
+			return fecha.HasValue? fecha.Value.ToString("dd/MM/yyyy"):"";
+		}
+
+
+		static bool BuscarHecho(RuvConsultaNoValorados nv, List<DatosDetallados> hechos, 
+			ParametrosProcesamiento parProcesamiento,
+			out DatosDetallados  hecho){
+			hecho = null;
+
+			foreach (var h in hechos) {
+				if (!FnVal.ValidarHechoDesplazamentForzado (h, parProcesamiento))
+					continue;
+				if (FnVal.NumeroDeclaracion (nv, h) 
+					|| FnVal.ValidarHechoPorFechaDeclaracion (h, nv)
+					|| FnVal.ValidarHechoPorFechaValoracion(h, nv)) {
+					hecho = h;
+					break;
+				}
+			}
+
+			return hecho != null;
+
+		}
 
     }
 }

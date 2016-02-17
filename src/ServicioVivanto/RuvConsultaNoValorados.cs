@@ -18,7 +18,7 @@ namespace ServicioVivanto
         /// <summary>
         /// Fecha Atencion en IRD
         /// </summary>
-        public DateTime Fecha_Valoracion { get; set; }  
+        public DateTime? Fecha_Valoracion { get; set; }  
         public int Id_Tipo_Identificacion { get; set; }
         public string Identificacion { get; set; }
         public string Primer_Apellido{ get; set; }
