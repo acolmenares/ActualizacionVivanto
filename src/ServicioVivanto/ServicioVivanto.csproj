@@ -68,8 +68,8 @@
     <Compile Include="FnVal.cs" />
     <Compile Include="IConexionVivanto.cs" />
     <Compile Include="IConexionIRD.cs" />
-    <Compile Include="Log.cs" />
     <Compile Include="LoginVivanto.cs" />
+    <Compile Include="Log.cs" />
     <Compile Include="ParametrosProcesamiento.cs" />
     <Compile Include="ParametrosServicio.cs" />
     <Compile Include="Procesamiento.cs" />

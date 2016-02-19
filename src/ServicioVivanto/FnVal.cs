@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace ServicioVivanto
 {
@@ -45,6 +46,13 @@ namespace ServicioVivanto
 			return (hecho.F_VALORACION.HasValue && nv.Fecha_Valoracion.HasValue)?
 				hecho.F_VALORACION.Value.Date > nv.Fecha_Valoracion.Value.Date: false;
 		}
+
+
+		public static string NombreArhivo(DirectoryInfo dir, string fn)
+		{
+			return Path.Combine(dir.FullName, fn);
+		}
+
 
     }
 }

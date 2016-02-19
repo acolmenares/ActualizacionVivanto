@@ -14,7 +14,9 @@ namespace ServicioVivanto
         IConexionVivanto vivanto;
         IConexionIRDCOL ird;
         ParametrosProcesamiento parProcesamiento;
-        //private string horasesion;
+		List<RuvConsultaNoValorados> noprocesados = new List<RuvConsultaNoValorados> ();
+
+		private readonly string logNoprocesado = "NoProcesados.json";
 
         public bool IgnorarExcepciones { get; set; }
 
@@ -24,24 +26,23 @@ namespace ServicioVivanto
             this.ird = ird;
             this.parProcesamiento = parProcesamiento;
             IgnorarExcepciones = true;
-            
-
         }
 
-        public void Iniciar() {
+		public string Iniciar(string archivoPorProcesar= null) {
 
             using (vivanto)
             {
                 //vivanto.IniciarSesion();
-                ProcesarRegistros();   
-            }
+				ProcesarRegistros(archivoPorProcesar);
+				return FnVal.NombreArhivo (vivanto.DirInfoLog, logNoprocesado);
+			}
 
         }
 
 
-        void ProcesarRegistros()
+		void ProcesarRegistros(string archivoNoprocesados=null)
         {
-            var lnv = ConsultarNoValoradosRuv();
+			var lnv = ConsultarNoValoradosRuv( archivoNoprocesados);
 
             var items = 0;
             foreach (var nv in lnv)
@@ -63,6 +64,8 @@ namespace ServicioVivanto
                 }
                 System.Threading.Thread.Sleep(500);
             }
+
+			GuardarNoProcesado ();
         }
 
         private List<DatosBasicos> ConsultarEnVivanto(RuvConsultaNoValorados nv)
@@ -73,18 +76,21 @@ namespace ServicioVivanto
             }
             catch(Exception ex)
             {
+				AgregarNoProcesados (nv);
                 IgnorarOLanzarExcepcion(ex);
             }
 
             return db;
         }
 
-        List<RuvConsultaNoValorados> ConsultarNoValoradosRuv()
+		List<RuvConsultaNoValorados> ConsultarNoValoradosRuv(string archivoPorProcesar=null)
         {
             List<RuvConsultaNoValorados> lnv = new List<RuvConsultaNoValorados>();
             try
             {
-                lnv = ird.ConsultarNoActualizadosVUR(parProcesamiento.FechaRadicacionInicial, parProcesamiento.FechaRadicacionFinal);
+				lnv =  string.IsNullOrEmpty(archivoPorProcesar)?
+					ird.ConsultarNoActualizadosVUR(parProcesamiento.FechaRadicacionInicial, parProcesamiento.FechaRadicacionFinal):
+					CargarDeArchivo(archivoPorProcesar);
             }
             catch(Exception ex)
             {
@@ -102,7 +108,11 @@ namespace ServicioVivanto
             foreach (var dato in datosbasicos)
             {
                 if (!(dato.FUENTE == "RUV" || dato.FUENTE == "SIPOD")) continue;
-                List<DatosDetallados> hechos = ConsultarHechosEnVivanto(dato);
+				List<DatosDetallados> hechos;
+				if (!ConsultarHechosEnVivanto (dato, out hechos)) {
+					AgregarNoProcesados (nv);
+					continue;
+				}
 				hl.AddRange (hechos);
                 if (ProcesarHechos(nv, hechos, out hecho))
                 {					
@@ -112,11 +122,12 @@ namespace ServicioVivanto
                 }
             }
             GuardarSiSeEncontroHecho(nv, datosbasicos, hl, hecho);
+			ConfirmarComoNoProcesado (nv, hecho);
         }
 
-        private List<DatosDetallados> ConsultarHechosEnVivanto(DatosBasicos dato)
+		private bool ConsultarHechosEnVivanto(DatosBasicos dato, out List<DatosDetallados> hechos)
         {
-            List<DatosDetallados> hechos = new List<DatosDetallados>();
+			hechos = null;
             try {
                 hechos = vivanto.ConsultarHechos(dato);
             }
@@ -124,7 +135,7 @@ namespace ServicioVivanto
             {
                 IgnorarOLanzarExcepcion(ex);
             }
-            return hechos;
+            return hechos!=null;
         }
 
         private bool ProcesarHechos(RuvConsultaNoValorados nv, List<DatosDetallados> hechos, out DatosDetallados hecho)
@@ -184,6 +195,7 @@ namespace ServicioVivanto
             }
             catch (Exception ex)
             {
+				AgregarNoProcesados (nv);
                 IgnorarOLanzarExcepcion(ex);
             }
             finally
@@ -220,11 +232,28 @@ namespace ServicioVivanto
 
         private void IgnorarOLanzarExcepcion(Exception ex)
         {
-            if (IgnorarExcepciones)
-                Log.Sesion(vivanto.DirInfoLog, ex.Message);
-            else
-                throw new ExcepcionProcesamiento(vivanto.DirInfoLog, ex.Message);
+			Log.Sesion(vivanto.DirInfoLog, ex.Message);
+			if (!IgnorarExcepciones)
+				throw new ExcepcionProcesamiento (vivanto.DirInfoLog, ex.Message);
         }
+
+		private void ConfirmarComoNoProcesado (RuvConsultaNoValorados nv, DatosDetallados hecho){
+			if (hecho != null) {
+				noprocesados.RemoveAll (q => q.Id_Persona == nv.Id_Persona);
+			}
+		}
+
+		private void AgregarNoProcesados(RuvConsultaNoValorados nv){
+			noprocesados.AddIfNotExists (nv);
+		}
+
+		private void GuardarNoProcesado (){
+			Log.NoProcesados (vivanto.DirInfoLog, logNoprocesado, noprocesados);
+		}
+
+		private List<RuvConsultaNoValorados>  CargarDeArchivo(string archivoPorProcesar){
+			return Log.CargarRuvConsultaNoValoradosDeArchivo (archivoPorProcesar);
+		}
 
     }
 }

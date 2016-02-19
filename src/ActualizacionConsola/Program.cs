@@ -19,6 +19,12 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
+			string archivoPorProcesar = null;
+
+			if (args.Length > 0) {
+				archivoPorProcesar = args [0];
+				Console.WriteLine (archivoPorProcesar);
+			}
 
             
             var appSettings = new AppSettings();
@@ -59,8 +65,11 @@ namespace ConsoleApplication1
             var dbcliente = new ConexionIRDCOL(dbfactory);
 
             var proc = new Procesamiento(cliente, dbcliente, parProcesamiento);
-            proc.Iniciar();
+			var np = proc.Iniciar(archivoPorProcesar);
             Console.WriteLine("Listo");
+			Console.WriteLine ("Iniciando ahora con los no procesados...");
+			proc = new Procesamiento(cliente, dbcliente, parProcesamiento);
+			proc.Iniciar(np);
             //Console.ReadLine();
             return;
             

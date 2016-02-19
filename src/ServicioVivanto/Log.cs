@@ -122,9 +122,9 @@ namespace ServicioVivanto
             }
         }
 
-        private static string NombreArhivo(DirectoryInfo dir, string fn)
+        public static string NombreArhivo(DirectoryInfo dir, string fn)
         {
-            return Path.Combine(dir.FullName, fn);
+			return FnVal.NombreArhivo (dir, fn);
         }
 
         static string CsvFecha( this DateTime fecha)
@@ -157,6 +157,25 @@ namespace ServicioVivanto
 			return hecho != null;
 
 		}
+
+		public static void NoProcesados(DirectoryInfo dir, string archivo, List<RuvConsultaNoValorados> noprocesados){
+		
+			var fn = FnVal.NombreArhivo (dir, archivo);
+
+			using (var tw = new System.IO.FileStream (fn, FileMode.Create)) {
+				ServiceStack.Text.JsonSerializer.SerializeToStream(noprocesados, tw);
+				tw.Close ();
+			}
+		}
+
+		public static List<RuvConsultaNoValorados> CargarRuvConsultaNoValoradosDeArchivo( string archivoPorProcesar){
+			
+			using (var tw = new System.IO.FileStream (archivoPorProcesar, FileMode.Open, FileAccess.Read)) {
+				Console.WriteLine ("Cargar de  {0}", archivoPorProcesar);
+				return ServiceStack.Text.JsonSerializer.DeserializeFromStream<List<RuvConsultaNoValorados>>(tw);
+			}
+		}
+
 
     }
 }
