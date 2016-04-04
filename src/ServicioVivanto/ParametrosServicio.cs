@@ -29,7 +29,7 @@ namespace ServicioVivanto
 
 
 
-//http://190.60.70.149:82/LoginRest/Autentica.svc/Login/146,AICOLMENARESA,qFybbUDcL3
+//http://190.60.70.149:82/LoginRest/Autentica.svc/Login/146,AICOLMENARESA,XXXXXXXXXX
 //http://190.60.70.149:82/LoginRest/Autentica.svc/Logout/146,IdUsuario,Token
 //http://190.60.70.149:82/VivantoMovilRest/ServiceMovil.svc/Documento/146,IdUsuario,Token,DOCUMENTO
 //http://190.60.70.149:82/VivantoMovilRest/ServiceMovil.svc/Hechos/146,IdUsuario,Token,ID_PERSONA,FUENTE
