@@ -30,13 +30,15 @@ namespace ServicioVivanto
 
 		public string Iniciar(string archivoPorProcesar= null) {
 
+			var ret = string.Empty;
             using (vivanto)
             {
-                //vivanto.IniciarSesion();
+                vivanto.IniciarSesion();
 				ProcesarRegistros(archivoPorProcesar);
-				return FnVal.NombreArhivo (vivanto.DirInfoLog, logNoprocesado);
+				vivanto.CerrarSession ();
+				ret= FnVal.NombreArhivo (vivanto.DirInfoLog, logNoprocesado);
 			}
-
+			return ret;
         }
 
 
@@ -50,11 +52,11 @@ namespace ServicioVivanto
                 //if (nv.Identificacion != "25713773") continue; //solo una prueba puntual
 
                 items++;
-                vivanto.IniciarSesion();
+                //vivanto.IniciarSesion();
                 Console.WriteLine("{0} {1} {2}", nv.Identificacion, nv.Numero_Declaracion, nv.Fecha_Declaracion);
                 List<DatosBasicos> datosbasicos = ConsultarEnVivanto(nv);
                 ProcesarDatosBasicos(nv, datosbasicos);
-                vivanto.CerrarSession();
+                //vivanto.CerrarSession();
                 if (items == 4)
                 {
                     Console.WriteLine("esperando 5 segundos para el siguiente lote");
