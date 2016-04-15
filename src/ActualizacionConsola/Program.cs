@@ -59,18 +59,22 @@ namespace ConsoleApplication1
                 FechaRadicacionFinal = fechaRadicacionFinal
             };
 
-            IConexionVivanto cliente = new ConexionVivanto(par, login);
-            
-            var dbfactory = new OrmLiteConnectionFactory(conexionBD, SqlServerDialect.Provider);
-            var dbcliente = new ConexionIRDCOL(dbfactory);
+			using (IConexionVivanto cliente = new ConexionVivanto (par, login)) {
 
-            var proc = new Procesamiento(cliente, dbcliente, parProcesamiento);
-			var np = proc.Iniciar(archivoPorProcesar);
-            Console.WriteLine("Listo");
-			Console.WriteLine ("Iniciando ahora con los no procesados...");
-			proc = new Procesamiento(cliente, dbcliente, parProcesamiento);
-			proc.Iniciar(np);
-            //Console.ReadLine();
+				var dbfactory = new OrmLiteConnectionFactory (conexionBD, SqlServerDialect.Provider);
+				var dbcliente = new ConexionIRDCOL (dbfactory);
+				cliente.IniciarSesion ();
+				var proc = new Procesamiento (cliente, dbcliente, parProcesamiento);
+				var np = proc.Iniciar (archivoPorProcesar);
+				Console.WriteLine ("Listo primera fase");
+				Console.WriteLine ("esperando 5 segundos para iniciar con los no procesados");
+				System.Threading.Thread.Sleep (5 * 1000);
+				Console.WriteLine ("Iniciando ahora con los no procesados...");
+				//proc = new Procesamiento (cliente, dbcliente, parProcesamiento);
+				proc.Iniciar (np);
+				cliente.CerrarSession ();
+			}
+            
             return;
             
         }

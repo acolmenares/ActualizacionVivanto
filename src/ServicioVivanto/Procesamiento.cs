@@ -31,14 +31,14 @@ namespace ServicioVivanto
 		public string Iniciar(string archivoPorProcesar= null) {
 
 			var ret = string.Empty;
-            using (vivanto)
-            {
-                vivanto.IniciarSesion();
+            //using (vivanto)
+            //{
+                //vivanto.IniciarSesion();
 				ProcesarRegistros(archivoPorProcesar);
-				vivanto.CerrarSession ();
-				ret= FnVal.NombreArhivo (vivanto.DirInfoLog, logNoprocesado);
-			}
-			return ret;
+				//vivanto.CerrarSession ();
+				return  FnVal.NombreArhivo (vivanto.DirInfoLog, logNoprocesado);
+			//}
+			//return ret;
         }
 
 
