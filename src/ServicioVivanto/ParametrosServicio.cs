@@ -24,7 +24,7 @@ namespace ServicioVivanto
         public string UrlLogout { get; set; }
         public string UrlConsultarDocumento { get; set; }
         public string UrlConsultarHechos { get; set; }
-            }
+    }
 }
 
 
@@ -33,3 +33,4 @@ namespace ServicioVivanto
 //http://190.60.70.149:82/LoginRest/Autentica.svc/Logout/146,IdUsuario,Token
 //http://190.60.70.149:82/VivantoMovilRest/ServiceMovil.svc/Documento/146,IdUsuario,Token,DOCUMENTO
 //http://190.60.70.149:82/VivantoMovilRest/ServiceMovil.svc/Hechos/146,IdUsuario,Token,ID_PERSONA,FUENTE
+

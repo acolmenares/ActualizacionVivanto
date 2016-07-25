@@ -14,3 +14,16 @@ namespace RestServiceAutentica
     }
 
 }
+
+/*
+ <ArrayOfAutorizado xmlns="http://schemas.datacontract.org/2004/07/RestServiceAutentica" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+<Autorizado>
+<IdUsuario>
+El usuario o la clave es INCORRECTO, vuelva a intentar....
+</IdUsuario>
+<Token>
+El usuario o la clave es INCORRECTO, vuelva a intentar....
+</Token>
+</Autorizado>
+</ArrayOfAutorizado>
+ */
