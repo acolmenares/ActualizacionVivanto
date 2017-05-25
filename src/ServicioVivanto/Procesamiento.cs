@@ -162,11 +162,11 @@ namespace ServicioVivanto
 
             if (hecho.FUENTE == "RUV")
             {
-                if (!ValidarHechoPorNumeroDeclaracion(hecho, nv) && !ValidarHechoPorFechaValoracion(hecho, nv)) return false;
+                if (!ValidarHechoPorNumeroDeclaracion(hecho, nv) || !ValidarHechoPorFechaValoracion(hecho, nv)) return false;
             }
             else if (hecho.FUENTE == "SIPOD")
             {
-                if (!ValidarHechoPorFechaDeclaracion(hecho, nv)) return false;
+                if (!ValidarHechoPorNumeroDeclaracion(hecho, nv) || !ValidarHechoPorFechaDeclaracion(hecho, nv)) return false;
             }
             else return false;
 
